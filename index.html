@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Menggambar</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        text-align: center;
+    }
+
+    h1 {
+        color: #333;
+    }
+
+    canvas {
+        border: 2px solid #333;
+        border-radius: 8px;
+        cursor: crosshair;
+    }
+
+    .controls {
+        margin-top: 15px;
+    }
+
+    .controls button, .controls input {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 5px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .controls button:hover, .controls input:hover {
+        background-color: #388E3C;
+    }
+
+    /* Styling untuk tombol warna */
+    .color-picker {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        border-radius: 50%;
+        border: 2px solid #333;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .color-picker:hover {
+        transform: scale(1.1); /* Efek membesar saat di-hover */
+    }
+
+    #eraser {
+        background-color: #ffffff; /* Penghapus: warna putih */
+        border: 2px solid #333; /* Bingkai hitam */
+    }
+
+    /* Styling untuk slider ukuran brush */
+    .brush-size {
+        margin-top: 20px;
+    }
+
+
+
+    
+</style>
+</head>
+<body>
+    <link rel="stylesheet" href="sytle.css" />
+<div class="container">
+    <h1>Media Menggambar Sederhana</h1>
+    <canvas id="drawingCanvas" width="350" height="285"></canvas>
+    <div class="controls">
+        <button onclick="clearCanvas()">Hapus Gambar</button>
+    </div>
+    <div class="controls">
+        <!-- Tombol pilihan warna -->
+         <button class="color-picker" style="background-color: #000000;" onclick="changeColor('#000000')"></button>
+        <button class="color-picker" style="background-color: #FFFF00;" onclick="changeColor('#FFFF00')"></button>
+        <button class="color-picker" style="background-color: #D30000;" onclick="changeColor('#D30000')"></button>
+        <button class="color-picker" style="background-color: #33FF57;" onclick="changeColor('#33FF57')"></button>
+        <button class="color-picker" style="background-color: #3357FF;" onclick="changeColor('#3357FF')"></button>
+        <button class="color-picker" id="eraser" onclick="changeColor('#FFFFFF')">Penghapus</button>
+    </div>
+    <div class="brush-size">
+        <label for="brushSize">Ukuran Kuas:</label>
+        <input type="range" id="brushSize" min="1" max="10" value="2" onchange="changeBrushSize(this.value)">
+        <button id="saveBtn">Save As</button>
+    </div>
+</div>
+
+<script>
+    // Ambil elemen canvas dan context-nya
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let currentColor = '#333'; // Warna hitam default
+    let brushSize = 2; // Ukuran kuas default
+
+    // Fungsi untuk mengganti warna spidol
+    function changeColor(color) {
+        currentColor = color;
+    }
+
+    // Fungsi untuk mengganti ukuran kuas
+    function changeBrushSize(size) {
+        brushSize = size;
+    }
+
+    // Fungsi untuk memulai menggambar
+    function startDrawing(e) {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    // Fungsi untuk menggambar garis saat mouse bergerak
+    function draw(e) {
+        if (!isDrawing) return; // Jangan menggambar jika tidak sedang menekan mouse
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = currentColor; // Gunakan warna yang dipilih
+        ctx.lineWidth = brushSize; // Gunakan ukuran kuas yang dipilih
+        ctx.lineCap = 'round'; // Agar garis terlihat halus
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    // Fungsi untuk menghentikan proses menggambar
+    function stopDrawing() {
+        isDrawing = false;
+        ctx.closePath();
+    }
+
+    // Fungsi untuk menghapus gambar di canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Event listener untuk mulai menggambar saat mouse ditekan
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+
+    function startTouchDrawing(e) {
+        isDrawing = true;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+    }
+
+    // Fungsi untuk menggambar garis saat mouse bergerak
+    function draw(e) {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    // Fungsi untuk memulai menggambar (touch)
+function startTouchDrawing(e) {
+    e.preventDefault(); // Mencegah scroll atau zoom pada layar sentuh
+    isDrawing = true;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    lastX = touch.clientX - rect.left;
+    lastY = touch.clientY - rect.top;
+}
+
+// Fungsi untuk menggambar garis saat layar disentuh
+function drawTouch(e) {
+    if (!isDrawing) return;
+    e.preventDefault(); // Mencegah scrolling di layar sentuh
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(touchX, touchY);
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    [lastX, lastY] = [touchX, touchY]; // Update posisi terakhir sesuai sentuhan
+
+
+    }
+
+    // Fungsi untuk menghentikan proses menggambar
+    function stopDrawing() {
+        isDrawing = false;
+        ctx.closePath();
+    }
+
+    // Fungsi untuk menghapus gambar di canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Event listener untuk mouse
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+    // Event listener untuk touch (layar sentuh)
+    canvas.addEventListener('touchstart', startTouchDrawing);
+    canvas.addEventListener('touchmove', drawTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+
+// Fungsi untuk menyimpan gambar
+document.getElementById('saveBtn').addEventListener('click', function() {
+    const image = canvas.toDataURL("image/png"); // Konversi canvas ke format data URL
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = 'gambar_canvas.png'; // Nama file gambar
+    link.click();
+});
+
+</script>
+</head>
+</html>
